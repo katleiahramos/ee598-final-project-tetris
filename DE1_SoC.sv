@@ -12,7 +12,7 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	logic reset;
 	logic [31:0] div_clk;
 
-	assign reset = ~KEY[0];
+	assign reset = SW[9];
 	parameter whichClock = 15;
 	clock_divider cdiv (.clock(CLOCK_50),
 	.reset(reset),
@@ -25,27 +25,10 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW);
 	assign clkSelect = CLOCK_50; // for simulation
 	// assign clkSelect = div_clk[whichClock]; // for board
 
-	logic [4:0] loc;
-	logic start, found, not_found;
-	// assign start = SW[9];
-	assign LEDR[9] = found;
-	assign LEDR[0] = not_found;
+	logic [2:1] random_shape_addr;
 
-	button_detection b (.clk(clkSelect), .reset, .b(SW[9]), .out(start));
+	lfsr l (.clk(clkSelect), .reset, .out(random_shape_addr))
 
-	binary_search c (
-		.clk(clkSelect), 
-		.reset,
-		.start,
-		.A(SW[7:0]),
-		.loc,
-		.found,
-		.not_found
-		);
-
-	// Hex Displays
-	seg7 a_disp1 (.bcd(loc[3:0]), .leds(HEX0));
-	seg7 a_disp2 (.bcd({3'b000, loc[4]}), .leds(HEX1));
 endmodule
 
 `timescale 1 ps / 1 ps
@@ -68,31 +51,7 @@ module DE1_SoC_testbench();
 
 	// Test the design.
 	initial begin
-    SW[7:0] <= 0; SW[9] <=0; @(posedge CLOCK_50); // Initialize
-    KEY[0] <= 0; @(posedge CLOCK_50); // Always reset FSMs at start; turn on
-    KEY[0] <= 1; SW[9] <= 1; SW[7:0] <= 17; @(posedge CLOCK_50); // Always reset FSMs at start; turn on
-    SW[9] <= 0; @(posedge CLOCK_50);
-    repeat(15) @(posedge CLOCK_50);
-
-    KEY[0] <= 0;@(posedge CLOCK_50);
-    KEY[0] <=1; @(posedge CLOCK_50); 
-    SW[9] <= 1; SW[7:0] <= 3; @(posedge CLOCK_50); 
-    SW[9] <= 0; @(posedge CLOCK_50);
-    repeat(15) @(posedge CLOCK_50);
-
-    // Middle val
-    KEY[0] <= 0;@(posedge CLOCK_50);
-    KEY[0] <=1; @(posedge CLOCK_50); 
-    SW[9] <= 1; SW[7:0] <= 7; @(posedge CLOCK_50); 
-    SW[9] <= 0; @(posedge CLOCK_50);
-    repeat(15) @(posedge CLOCK_50);
-
-    // Not Found
-    KEY[0] <= 0;@(posedge CLOCK_50); 
-    KEY[0] <=1; @(posedge CLOCK_50); 
-    SW[9] <= 1; SW[7:0] <= 40; @(posedge CLOCK_50); 
-    SW[9] <= 0; @(posedge CLOCK_50);
-    repeat(35) @(posedge CLOCK_50);
-		$stop; // End the simulation.
+    SW[9] <=0; @(posedge CLOCK_50); // Initialize
+    SW[9] <= 1; @(posedge CLOCK_50); // Always reset FSMs at start; turn on
 	end
 endmodule

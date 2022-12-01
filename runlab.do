@@ -4,8 +4,7 @@ vlib work
 #     All Verilog files that are part of this design should have
 #     their own "vlog" line below.
 vlog "./DE1_SoC.sv"
-vlog "./binary_search.sv"
-vlog "./ram32x8_2.v"
+vlog "./lfsr.sv"
 
 
 # Call vsim to invoke simulator
@@ -13,13 +12,13 @@ vlog "./ram32x8_2.v"
 #     testbench module you want to execute.
 
 #vsim -voptargs="+acc" -t 1ps -lib work DE1_SoC_testbench
-vsim -voptargs="+acc" -t 1ps -lib work binary_search_testbench
+vsim -voptargs="+acc" -t 1ps -lib work lfsr_testbench
 
 # Source the wave do file
 #     This should be the file that sets up the signal window for
 #     the module you are testing.
 #do DE1_SoC_wave.do
-do binary_search_wave.do
+do lfsr_wave.do
 
 # Set the window types
 view wave
