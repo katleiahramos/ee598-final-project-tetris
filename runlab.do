@@ -5,20 +5,22 @@ vlib work
 #     their own "vlog" line below.
 vlog "./DE1_SoC.sv"
 vlog "./lfsr.sv"
-
+vlog "./generate_shape.sv"
 
 # Call vsim to invoke simulator
 #     Make sure the last item on the line is the name of the
 #     testbench module you want to execute.
 
-#vsim -voptargs="+acc" -t 1ps -lib work DE1_SoC_testbench
-vsim -voptargs="+acc" -t 1ps -lib work lfsr_testbench
+vsim -voptargs="+acc" -t 1ps -lib work DE1_SoC_testbench
+#vsim -voptargs="+acc" -t 1ps -lib work lfsr_testbench
+#vsim -voptargs="+acc" -t 1ps -lib work generate_shape_testbench
 
 # Source the wave do file
 #     This should be the file that sets up the signal window for
 #     the module you are testing.
-#do DE1_SoC_wave.do
-do lfsr_wave.do
+do DE1_SoC_wave.do
+#do lfsr_wave.do
+#do generate_shape_wave.do
 
 # Set the window types
 view wave
