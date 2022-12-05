@@ -6,6 +6,7 @@ vlib work
 vlog "./DE1_SoC.sv"
 vlog "./lfsr.sv"
 vlog "./generate_shape.sv"
+vlog "./LEDDriver.sv"
 
 # Call vsim to invoke simulator
 #     Make sure the last item on the line is the name of the

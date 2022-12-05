@@ -11,6 +11,8 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 	// ***** CLOCK SELECTION ***** //
 	// Generate clk off of CLOCK_50, whichClock picks rate.
 	logic reset;
+	assign reset = SW[9];
+
 	logic [31:0] div_clk;
 
 	parameter whichClock = 15;
@@ -18,7 +20,7 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 	.reset(reset),
 	.divided_clocks(div_clk));
 	
-	logic clkSelect; // Clock selection; allows for easy switching between simulation and board clocks
+	logic clkSelect; // Clock selec`tion; allows for easy switching between simulation and board clocks
 
 	// Uncomment ONE of the following two lines depending on intention
 	// assign clkSelect = CLOCK_50; // for simulation
@@ -28,41 +30,61 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 	logic [1:0] random_shape_addr;
 	logic [3:0][7:0] random_shape;
 	logic [3:0][7:0] current_shape;
-	logic game_clk;
-
-	assign game_clk = ~KEY[0];
-
+	
+	// parameter COUNT_MAX = 5; // for simulation
+	parameter COUNT_MAX = 1526; // for board
 	lfsr l (.clk(clkSelect), .reset, .out(random_shape_addr));
 	generate_shape g (.shape_addr(random_shape_addr), .shape(random_shape));
-
-	always_ff @(posedge game_clk) begin
-		current_shape <= random_shape;
-	end
-
-
 	logic [15:0][15:0]RedPixels; // 16 x 16 array representing red LEDs
 	logic [15:0][15:0]GrnPixels; // 16 x 16 array representing green LEDs
+	int counter;
+	always_ff @(posedge clkSelect) begin
+		if (reset) begin
+			counter <= 0;
+			// current_shape <= random_shape;\
+			current_shape <= { 
+                // SQAURE
+                8'b00000000,
+                8'b00000000,
+                8'b00011000,
+                8'b00011000
+            };
+
+			RedPixels[00] <= 16'b0000000000000000;
+			RedPixels[01] <= 16'b0000000000000000;
+			RedPixels[02] <= 16'b0000000000000000;
+			RedPixels[03] <= 16'b0000000000000000;
+			RedPixels[04] <= 16'b0000000000000000;
+			RedPixels[05] <= 16'b0000000000000000;
+			RedPixels[06] <= { 8'b00000000, current_shape[00] };
+			RedPixels[07] <= { 8'b00000000, current_shape[01] };
+			RedPixels[08] <= { 8'b00000000, current_shape[02] };
+			RedPixels[09] <= { 8'b00000000, current_shape[03] };
+			RedPixels[10] <= 16'b0000000000000000;
+			RedPixels[11] <= 16'b0000000000000000;
+			RedPixels[12] <= 16'b0000000000000000;
+			RedPixels[13] <= 16'b0000000000000000;
+			RedPixels[14] <= 16'b0000000000000000;
+			RedPixels[15] <= 16'b0000000000000000;
+		end
+		if (counter == COUNT_MAX) begin
+			counter <= 0;
+			RedPixels <= RedPixels << 16 ;
+		end 
+		else 
+			counter <= counter + 1;
+	end
+
+	logic game_clk;
+
+	assign game_clk = counter == COUNT_MAX;
+	assign LEDR[0] = game_clk;
+	assign LEDR[2] = reset;
+	assign LEDR[9] = clkSelect;
+
+
 
 	LEDDriver Driver (.CLK(clkSelect), .RST(reset), .EnableCount(1'b1), .RedPixels, .GrnPixels, .GPIO_1);
-
-	assign RedPixels[00] = 16'b0000000000000000;
-	assign RedPixels[01] = 16'b0000000000000000;
-	assign RedPixels[02] = 16'b0000000000000000;
-	assign RedPixels[03] = 16'b0000000000000000;
-	assign RedPixels[04] = 16'b0000000000000000;
-	assign RedPixels[05] = 16'b0000000000000000;
-	assign RedPixels[06] = { 8'b00000000, current_shape[00] };
-	assign RedPixels[07] = { 8'b00000000, current_shape[01] };
-	assign RedPixels[08] = { 8'b00000000, current_shape[02] };
-	assign RedPixels[09] = { 8'b00000000, current_shape[03] };
-	assign RedPixels[10] = 16'b0000000000000000;
-	assign RedPixels[11] = 16'b0000000000000000;
-	assign RedPixels[12] = 16'b0000000000000000;
-	assign RedPixels[13] = 16'b0000000000000000;
-	assign RedPixels[14] = 16'b0000000000000000;
-	assign RedPixels[15] = 16'b0000000000000000;
-	
-	// LED_test test (.RST(reset), .RedPixels, .GrnPixels); // Replace with Display module for Tetris
 
 endmodule
 
@@ -86,9 +108,11 @@ module DE1_SoC_testbench();
 
 	// Test the design.
 	initial begin
-		SW[9] <=0; @(posedge CLOCK_50); // Initialize
+		SW[9] <=0; KEY[0] <= 1; KEY[1] <= 1; @(posedge CLOCK_50); // Initialize
 		SW[9] <= 1; @(posedge CLOCK_50); // Always reset FSMs at start; turn on
-
+		SW[9] <= 0; @(posedge CLOCK_50);
+		KEY[1] <= 0; repeat (5) @(posedge CLOCK_50);
+		KEY[1] <= 1; @(posedge CLOCK_50);
 		repeat(15) @(posedge CLOCK_50); // Always reset FSMs at start; turn on
 		$stop; // End the simulation.
 	end
