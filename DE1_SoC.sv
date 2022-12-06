@@ -15,7 +15,7 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 
 	logic [31:0] div_clk;
 
-	parameter whichClock = 15;
+	parameter whichClock = 14;
 	clock_divider cdiv (.clock(CLOCK_50),
 	.reset(reset),
 	.divided_clocks(div_clk));
@@ -24,7 +24,7 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 
 	// Uncomment ONE of the following two lines depending on intention
 	// assign clkSelect = CLOCK_50; // for simulation
-	assign clkSelect = div_clk[14]; // for board
+	assign clkSelect = div_clk[whichClock]; // for board
 
 	// ***** TETRIS LOGIC ***** //
 	logic [1:0] random_shape_addr;
@@ -32,15 +32,20 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 	logic [3:0][7:0] current_shape;
 	
 	// parameter COUNT_MAX = 5; // for simulation
-	parameter COUNT_MAX = 1526; // for board
+	parameter COUNT_MAX = 1526; // for board - because we are using div_clk[14] = 1526 Hz, faster clk caused LED issues
 	lfsr l (.clk(clkSelect), .reset, .out(random_shape_addr));
 	generate_shape g (.shape_addr(random_shape_addr), .shape(random_shape));
-	logic [15:0][15:0]RedPixels; // 16 x 16 array representing red LEDs
-	logic [15:0][15:0]GrnPixels; // 16 x 16 array representing green LEDs
+	logic [15:0][15:0] ShapeCanvas; // 16 x 16 array representing only the current shape LEDs
+	logic [15:0][15:0] BoardCanvas; // 16 x 16 array representing the existing shape's on the board LEDs
+	logic [15:0][15:0]RedPixels; // 16 x 16 array representing red LEDs on LED Matrix
+	logic [15:0][15:0]GrnPixels; // 16 x 16 array representing red LEDs on LED Matrix
+
 	int counter;
+	int place_marker; // to keep track of first row current shape is in
 	always_ff @(posedge clkSelect) begin
 		if (reset) begin
 			counter <= 0;
+			place_marker <=0;
 			// current_shape <= random_shape;\
 			current_shape <= { 
                 // SQAURE
@@ -50,29 +55,57 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
                 8'b00011000
             };
 
-			RedPixels[00] <= 16'b0000000000000000;
-			RedPixels[01] <= 16'b0000000000000000;
-			RedPixels[02] <= 16'b0000000000000000;
-			RedPixels[03] <= 16'b0000000000000000;
-			RedPixels[04] <= 16'b0000000000000000;
-			RedPixels[05] <= 16'b0000000000000000;
-			RedPixels[06] <= { 8'b00000000, current_shape[00] };
-			RedPixels[07] <= { 8'b00000000, current_shape[01] };
-			RedPixels[08] <= { 8'b00000000, current_shape[02] };
-			RedPixels[09] <= { 8'b00000000, current_shape[03] };
-			RedPixels[10] <= 16'b0000000000000000;
-			RedPixels[11] <= 16'b0000000000000000;
-			RedPixels[12] <= 16'b0000000000000000;
-			RedPixels[13] <= 16'b0000000000000000;
-			RedPixels[14] <= 16'b0000000000000000;
-			RedPixels[15] <= 16'b0000000000000000;
+			ShapeCanvas[00] <= 16'b0000000000000000;
+			ShapeCanvas[01] <= 16'b0000000000000000;
+			ShapeCanvas[02] <= 16'b0000000000000000;
+			ShapeCanvas[03] <= 16'b0000000000000000;
+			ShapeCanvas[04] <= 16'b0000000000000000;
+			ShapeCanvas[05] <= 16'b0000000000000000;
+			ShapeCanvas[06] <= { 6'b000000, current_shape[00], 2'b00 };
+			ShapeCanvas[07] <= { 6'b000000, current_shape[01],  2'b00};
+			ShapeCanvas[08] <= { 6'b000000, current_shape[02],  2'b00 };
+			ShapeCanvas[09] <= { 6'b000000, current_shape[03],  2'b00 };
+			ShapeCanvas[10] <= 16'b0000000000000000;
+			ShapeCanvas[11] <= 16'b0000000000000000;
+			ShapeCanvas[12] <= 16'b0000000000000000;
+			ShapeCanvas[13] <= 16'b0000000000000000;
+			ShapeCanvas[14] <= 16'b0000000000000000;
+			ShapeCanvas[15] <= 16'b0000000000000000;
+
+			BoardCanvas[00] <= 16'b0000000000000000;
+			BoardCanvas[01] <= 16'b0000000000000000;
+			BoardCanvas[02] <= 16'b0000000000000000;
+			BoardCanvas[03] <= 16'b0000000000000000;
+			BoardCanvas[04] <= 16'b0000000000000000;
+			BoardCanvas[05] <= 16'b0000000000000000;
+			BoardCanvas[06] <= 16'b0000010000000010;
+			BoardCanvas[07] <= 16'b0000010000000010;
+			BoardCanvas[08] <= 16'b0000010000000010;
+			BoardCanvas[09] <= 16'b0000010000000010;
+			BoardCanvas[10] <= 16'b0000010000000010;
+			BoardCanvas[11] <= 16'b0000010000000010;
+			BoardCanvas[12] <= 16'b0000010000000010;
+			BoardCanvas[13] <= 16'b0000010000000010;
+			BoardCanvas[14] <= 16'b0000010000000010;
+			BoardCanvas[15] <= 16'b0000011111111110;
+
+			RedPixels = ShapeCanvas | BoardCanvas;
+		end
+
+		if (BoardCanvas[place_marker + 1] & ShapeCanvas[place_marker]) begin
+			// add current piece to board canvas
+			BoardCanvas <= BoardCanvas | ShapeCanvas;
+			// assign a new current piece
+			place_marker <= 0;
 		end
 		if (counter == COUNT_MAX) begin
 			counter <= 0;
-			RedPixels <= RedPixels << 16 ;
+			ShapeCanvas <= ShapeCanvas << 16 ;	
+			RedPixels <= ShapeCanvas | BoardCanvas;
 		end 
 		else 
 			counter <= counter + 1;
+			place_marker <= place_marker + 1;
 	end
 
 	logic game_clk;
