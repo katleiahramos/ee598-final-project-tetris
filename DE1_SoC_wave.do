@@ -13,8 +13,9 @@ add wave -noupdate /DE1_SoC_testbench/dut/counter
 add wave -noupdate -expand /DE1_SoC_testbench/dut/RedPixels
 add wave -noupdate /DE1_SoC_testbench/dut/start
 add wave -noupdate /DE1_SoC_testbench/dut/L_pressed
+add wave -noupdate /DE1_SoC_testbench/dut/R_pressed
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
+WaveRestoreCursors {{Cursor 1} {250 ps} 0}
 quietly wave cursor active 1
 configure wave -namecolwidth 268
 configure wave -valuecolwidth 142
@@ -30,4 +31,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {5513 ps}
+WaveRestoreZoom {0 ps} {13703 ps}

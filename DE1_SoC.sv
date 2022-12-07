@@ -44,11 +44,11 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 
 	logic L_pressed, R_pressed;
 	button_detection bL (.clk(clkSelect), .reset, .b(~KEY[3]), .out(L_pressed));
-	// button_detection bR (.clk(clkSelect), .reset, .b(~KEY[0]), .out(R));
+	button_detection bR (.clk(clkSelect), .reset, .b(~KEY[0]), .out(R_pressed));
 
 	int counter;
 	int y_counter; // to keep track of row current shape is in
-	logic [15:0][15:0] NextShapeCanvas;
+	logic [19:0][16:0] NextShapeCanvas;
 	logic start;
 	// int y_counter; // to keep track of column current shape is in 
 	always_ff @(posedge clkSelect) begin
@@ -117,14 +117,17 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 			GrnPixels[15] <= 16'b0000011111111110;
 		end
 
-		// if(L_pressed) begin // Check if we've reached the boundary of the board
-		// 	$display("IN IF STATEMENT");
-		// 	NextShapeCanvas <= ShapeCanvas << 1;
-		// 	if(~(GrnPixels[y_counter+1] & NextShapeCanvas[y_counter] ))
-		// 		ShapeCanvas <= NextShapeCanvas;
+		if(L_pressed) begin // Check if we've reached the boundary of the board
+			if((GrnPixels[y_counter - 2] &  (ShapeCanvas[y_counter + 3] << 1 )) == 0) begin
+				ShapeCanvas <= ShapeCanvas << 1;
+			end
+		end 
 
-		// 	RedPixels <= ShapeCanvas  | BoardCanvas;
-		// end 
+		if(R_pressed) begin // Check if we've reached the boundary of the board
+			if((GrnPixels[y_counter - 2] &  (ShapeCanvas[y_counter + 3] >> 1 )) == 0) begin
+				ShapeCanvas <= ShapeCanvas >> 1;
+			end
+		end 
 
 		if (counter == COUNT_MAX) begin
 			counter <= 0;
@@ -165,10 +168,9 @@ module DE1_SoC (CLOCK_50, HEX0, HEX1, HEX2, HEX3, HEX4, HEX5, KEY, LEDR, SW, GPI
 			end else begin
 				ShapeCanvas <= ShapeCanvas << 16 ;	
 			end
-
-
 		end
 
+		RedPixels <= ShapeCanvas[19:4] | BoardCanvas[19:4]; // cotntinuously sync display and board between game clock cycles
 		
 	end
 
@@ -206,10 +208,21 @@ module DE1_SoC_testbench();
 
 	// Test the design.
 	initial begin
-		SW[9] <=0; KEY[3]=1; @(posedge CLOCK_50); // Initialize
+		SW[9] <=0; KEY[3] <=1; KEY[0] <=1; @(posedge CLOCK_50); // Initialize
 		SW[9] <= 1; @(posedge CLOCK_50); // Always reset FSMs at start; turn on
 		SW[9] <= 0; @(posedge CLOCK_50);
-		repeat(150) @(posedge CLOCK_50); // Always reset FSMs at start; turn on
+		repeat(20) @(posedge CLOCK_50); // Always reset FSMs at start; turn on
+		KEY[0] <= 0; @(posedge CLOCK_50);
+		KEY[0] <= 1; @(posedge CLOCK_50);
+		KEY[0] <= 0; @(posedge CLOCK_50);
+		KEY[0] <= 1; @(posedge CLOCK_50);
+		KEY[0] <= 0; @(posedge CLOCK_50);
+		KEY[0] <= 1; @(posedge CLOCK_50);
+		KEY[0] <= 0; @(posedge CLOCK_50);
+		KEY[0] <= 1; @(posedge CLOCK_50);
+		KEY[0] <= 0; @(posedge CLOCK_50);
+		KEY[0] <= 1; @(posedge CLOCK_50);
+		repeat(100) @(posedge CLOCK_50); // Always reset FSMs at start; turn on
 		$stop; // End the simulation.
 	end
 endmodule

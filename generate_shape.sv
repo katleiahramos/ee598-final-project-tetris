@@ -39,11 +39,11 @@ module generate_shape (
                 8'b000111000
             };
             default: shape = {
-                // EMPTY
+                // SQAURE
                 8'b00000000,
                 8'b00000000,
-                8'b00000000,
-                8'b00001111
+                8'b00011000,
+                8'b00011000
             };
         endcase
     end
