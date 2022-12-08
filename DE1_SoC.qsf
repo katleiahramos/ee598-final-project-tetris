@@ -786,6 +786,8 @@ set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_COUNTER_PIPELINE=
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ADVANCED_TRIGGER_ENTITY=basic,1," -section_id auto_signaltap_0
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_TRIGGER_LEVEL_PIPELINE=1" -section_id auto_signaltap_0
 set_global_assignment -name SLD_NODE_PARAMETER_ASSIGNMENT "SLD_ENABLE_ADVANCED_TRIGGER=0" -section_id auto_signaltap_0
+set_global_assignment -name SYSTEMVERILOG_FILE display.sv
+set_global_assignment -name SYSTEMVERILOG_FILE board.sv
 set_global_assignment -name SYSTEMVERILOG_FILE lfsr.sv
 set_global_assignment -name SYSTEMVERILOG_FILE LED_test.sv
 set_global_assignment -name SYSTEMVERILOG_FILE LEDDriver.sv
@@ -798,7 +800,5 @@ set_global_assignment -name SYSTEMVERILOG_FILE hex_display.sv
 set_global_assignment -name SDC_FILE DE1_SoC_golden_top.sdc
 set_global_assignment -name SYSTEMVERILOG_FILE DE1_SoC.sv
 set_global_assignment -name SYSTEMVERILOG_FILE clock_divider.sv
-set_global_assignment -name SIGNALTAP_FILE stp1.stp
-set_global_assignment -name SOURCE_FILE db/DE1_SoC.cmp.rdb
-set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
