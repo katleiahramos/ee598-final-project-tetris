@@ -1,16 +1,12 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate -expand /DE1_SoC_testbench/dut/RedPixels
-add wave -noupdate /DE1_SoC_testbench/dut/GrnPixels
-add wave -noupdate /DE1_SoC_testbench/dut/reset
-add wave -noupdate /DE1_SoC_testbench/dut/clkSelect
-add wave -noupdate /DE1_SoC_testbench/dut/current_board
 add wave -noupdate /DE1_SoC_testbench/dut/game_board/ShapeCanvas
-add wave -noupdate /DE1_SoC_testbench/dut/game_board/BoardCanvas
+add wave -noupdate /DE1_SoC_testbench/dut/game_board/counter
+add wave -noupdate /DE1_SoC_testbench/dut/game_board/game_clk_count
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {642 ps} 0}
+WaveRestoreCursors {{Cursor 1} {336 ps} 0}
 quietly wave cursor active 1
-configure wave -namecolwidth 268
+configure wave -namecolwidth 318
 configure wave -valuecolwidth 142
 configure wave -justifyvalue left
 configure wave -signalnamewidth 0
@@ -24,4 +20,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {2363 ps}
+WaveRestoreZoom {1056 ps} {1367 ps}

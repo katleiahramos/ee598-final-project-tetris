@@ -1,9 +1,8 @@
 // Handles what is displayed on the board
-module board (clk, game_clk_count, reset, current_board, random_shape, L_pressed, R_pressed, GrnPixels );
+module board (clk, game_clk_count, reset, current_board, random_shape, L_pressed, R_pressed);
     input clk, reset, L_pressed, R_pressed;
     input int game_clk_count;
     input logic [3:0][7:0] random_shape;
-    input logic [15:0][15:0]GrnPixels; 
 
     output logic [14:0][7:0] current_board; // What should be displayed to user
 
@@ -65,8 +64,7 @@ module board (clk, game_clk_count, reset, current_board, random_shape, L_pressed
                     ShapeCanvas[03][7:0] <= random_shape[00];
                     ShapeCanvas[19:4] <= 0; // Fill rest of the Shape board
                 end else begin
-                    // Set current board
-                    $display("IN ELSE");
+                    // Shift current board down 1 row
                     ShapeCanvas <= ShapeCanvas << 8 ;
                 end
             end
@@ -82,26 +80,8 @@ module board_testbench();
     logic [3:0][7:0] random_shape;
     logic [14:0][7:0] current_board;
     int game_clk_count;
-    logic [15:0][15:0]GrnPixels; 
 
-    assign GrnPixels[00] = 16'b0000010000000010;
-    assign GrnPixels[01] = 16'b0000010000000010;
-    assign GrnPixels[02] = 16'b0000010000000010;
-    assign GrnPixels[03] = 16'b0000010000000010;
-    assign GrnPixels[04] = 16'b0000010000000010;
-    assign GrnPixels[05] = 16'b0000010000000010;
-    assign GrnPixels[06] = 16'b0000010000000010;
-    assign GrnPixels[07] = 16'b0000010000000010;
-    assign GrnPixels[08] = 16'b0000010000000010;
-    assign GrnPixels[09] = 16'b0000010000000010;
-    assign GrnPixels[10] = 16'b0000010000000010;
-    assign GrnPixels[11] = 16'b0000010000000010;
-    assign GrnPixels[12] = 16'b0000010000000010;
-    assign GrnPixels[13] = 16'b0000010000000010;
-    assign GrnPixels[14] = 16'b0000010000000010;
-    assign GrnPixels[15] = 16'b0000011111111110;
-
-    board dut (.clk, .game_clk_count, .reset, .current_board, .random_shape, .L_pressed, .R_pressed, .GrnPixels);
+    board dut (.clk, .game_clk_count, .reset, .current_board, .random_shape, .L_pressed, .R_pressed);
 
       // Set up a simulated clock.
     parameter CLOCK_PERIOD=100;
